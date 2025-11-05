@@ -192,7 +192,7 @@ public class GlobalDiagnoser {
 
     @GlobalDiagnoseRule
     protected void allocationStall() {
-        if (model.getCollectorType() != GCCollectorType.ZGC && model.getCollectorType() != GCCollectorType.GENZ) {
+        if (!(model instanceof ZGCModel)) {
             return;
         }
         ZGCModel zModel = (ZGCModel) model;
