@@ -242,7 +242,9 @@ export default {
     oom: 'Out of memory表示堆内已经彻底无法分配对象，会抛出OutOfMemoryError',
     initialMarkSituation:
       'Initial Mark表示此次Young GC同时会对老年代进行初始标记，Young GC结束后会开始执行Concurrent Cycle',
-    prepareMixedSituation: 'Prepare Mixed表示此次Young GC完成后就会开始执行Mixed GC'
+    prepareMixedSituation: 'Prepare Mixed表示此次Young GC完成后就会开始执行Mixed GC',
+    minorCollection: 'Minor Collection在分代ZGC中回收年轻代',
+    majorCollection: 'Major Collection在分代ZGC中回收老年代'
   },
 
   badHint: {

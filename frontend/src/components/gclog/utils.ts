@@ -33,6 +33,10 @@ export function getPhaseHint(phase: string) {
       return 'phase.initialMarkSituation';
     case 'Prepare Mixed Situation':
       return 'phase.prepareMixedSituation';
+    case 'Minor Collection':
+      return 'phase.minorCollection';
+    case 'Major Collection':
+      return 'phase.majorCollection';
     // todo: add more phases
     default:
       return '';
@@ -174,11 +178,11 @@ export function badCause(phase: string, cause: string) {
 }
 
 export function isYoungGC(phase: string) {
-  return phase === 'Young GC' || phase === 'Mixed GC';
+  return phase === 'Young GC' || phase === 'Mixed GC' || phase === 'Minor Collection';
 }
 
 export function isOldGC(phase: string) {
-  return phase === 'Concurrent Mark Cycle' || phase === 'CMS';
+  return phase === 'Concurrent Mark Cycle' || phase === 'CMS' || phase === 'Major Collection';
 }
 
 export function isFullGC(phase: string) {

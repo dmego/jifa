@@ -242,7 +242,9 @@ export default {
     oom: 'Out of memory means no more objects can be allocated in the heap even after gc. An OutOfMemoryError will be thrown.',
     initialMarkSituation:
       'Initial Mark means this Young GC starts the marking process in addition to performing a normal young-only collection.',
-    prepareMixedSituation: 'Prepare Mixed means Mixed GC will start after this Young GC.'
+    prepareMixedSituation: 'Prepare Mixed means Mixed GC will start after this Young GC.',
+    minorCollection: 'Minor Collection in Generational ZGC collects the young generation.',
+    majorCollection: 'Major Collection in Generational ZGC collects the old generation.'
   },
 
   badHint: {
