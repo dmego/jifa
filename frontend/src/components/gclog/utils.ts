@@ -226,11 +226,11 @@ export function hasParallelGCThreads(metadata: any) {
 }
 
 export function isZGCCollector(metadata: any) {
-  return metadata.collector === 'ZGC' || metadata.collector === 'Generational ZGC';
+  return metadata && (metadata.collector === 'ZGC' || metadata.collector === 'Generational ZGC');
 }
 
 export function isGenerationalZGC(metadata: any) {
-  return metadata.collector === 'Generational ZGC';
+  return metadata && metadata.collector === 'Generational ZGC';
 }
 
 export function formatSize(bytes: number) {
