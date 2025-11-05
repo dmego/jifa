@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { useGCLogData } from '@/stores/gc-log-data';
 import { currentLocale, gct } from '@/i18n/i18n';
-import { COLORS, formatTimePeriod, getIthColor } from '@/components/gclog/utils';
+import { COLORS, formatTimePeriod, getIthColor, isZGCCollector } from '@/components/gclog/utils';
 import { prettyTime } from '@/support/utils';
 import { useAnalysisApiRequester } from '@/composables/analysis-api-requester';
 import * as echarts from 'echarts';
@@ -63,7 +63,9 @@ let dataLoaded = {};
 
 function initialize() {
   const memory = [];
-  if (metadata.generational) {
+  // ZGC collectors don't have traditional young/old generations
+  // They only report heap-level statistics
+  if (metadata.generational && !isZGCCollector(metadata)) {
     memory.push('youngCapacity', 'oldUsed', 'oldCapacity');
   }
   if (metadata.collector === 'G1 GC' && metadata.logStyle === 'unified') {
@@ -74,7 +76,7 @@ function initialize() {
     memory.push('metaspaceCapacity');
   }
   memory.push('reclamation');
-  if (metadata.generational) {
+  if (metadata.generational && !isZGCCollector(metadata)) {
     memory.push('promotion');
   }
 
@@ -327,7 +329,16 @@ function chooseDefaultDataTypes() {
   allTypes().forEach((type) => {
     result[type] = false;
   });
-  ['oldUsed', 'humongousUsed', 'heapUsed', ...metadata.mainPauseEventTypes]
+  const defaultTypes = [];
+  
+  // For ZGC collectors, don't show old generation data
+  if (!isZGCCollector(metadata)) {
+    defaultTypes.push('oldUsed');
+  }
+  
+  defaultTypes.push('humongousUsed', 'heapUsed', ...metadata.mainPauseEventTypes);
+  
+  defaultTypes
     .filter((type) => getCategory(type) !== undefined)
     .forEach((type) => (result[type] = true));
   return result;
