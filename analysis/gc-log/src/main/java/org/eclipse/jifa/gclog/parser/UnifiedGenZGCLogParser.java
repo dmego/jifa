@@ -54,7 +54,7 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
         withoutGCIDRules.add(UnifiedGenZGCLogParser::parseZGCStatisticLine);
 
         withGCIDRules = new ArrayList<>(AbstractUnifiedGCLogParser.getSharedWithGCIDRules());
-        // Young (Minor) generation phase rules
+        // Young (Minor) generation phase rules - old format
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Young Pause Mark Start", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Young Concurrent Mark", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Young Pause Mark End", UnifiedGenZGCLogParser::parsePhase));
@@ -65,7 +65,19 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Young Pause Relocate Start", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Young Concurrent Relocate", UnifiedGenZGCLogParser::parsePhase));
         
-        // Major (Old) generation phase rules
+        // Young generation phase rules - new format (with Y: prefix)
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Pause Mark Start", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Mark", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Pause Mark End", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Mark Free", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Process Non-Strong", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Reset Relocation Set", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Select Relocation Set", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Pause Relocate Start", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Concurrent Relocate", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Young Generation", UnifiedGenZGCLogParser::parsePhase));
+        
+        // Major (Old) generation phase rules - old format
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Major Pause Mark Start", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Major Concurrent Mark", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Major Pause Mark End", UnifiedGenZGCLogParser::parsePhase));
@@ -76,8 +88,23 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Major Pause Relocate Start", UnifiedGenZGCLogParser::parsePhase));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Major Concurrent Relocate", UnifiedGenZGCLogParser::parsePhase));
         
+        // Old generation phase rules - new format (with O: prefix)
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Pause Mark Start", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Mark", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Pause Mark End", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Mark Free", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Process Non-Strong", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Reset Relocation Set", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Select Relocation Set", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Pause Relocate Start", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Relocate", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Concurrent Remap Roots", UnifiedGenZGCLogParser::parsePhase));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Old Generation", UnifiedGenZGCLogParser::parsePhase));
+        
         // Common rules
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Metaspace", UnifiedGenZGCLogParser::parseMetaspace));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Y: Metaspace", UnifiedGenZGCLogParser::parseMetaspace));
+        withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("O: Metaspace", UnifiedGenZGCLogParser::parseMetaspace));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule(" Capacity", UnifiedGenZGCLogParser::parseHeap));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("     Used", UnifiedGenZGCLogParser::parseHeap));
         withGCIDRules.add(new ParseRule.PrefixAndValueParseRule("Allocated", UnifiedGenZGCLogParser::parseHeap));
@@ -219,6 +246,10 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
     private static void parsePhase(AbstractGCLogParser parser, ParseRule.ParseRuleContext context, String phaseName, String value) {
         GCModel model = parser.getModel();
         GCEventType eventType = getGCEventType(phaseName);
+        if (eventType == null) {
+            // This is a marker line (like "Y: Young Generation"), not an actual phase
+            return;
+        }
         GCEvent event = model.getLastEventOfType(eventType.getPhaseParentEventType());
         if (event == null) {
             // log may be incomplete
@@ -273,7 +304,7 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
 
     private static GCEventType getGCEventType(String eventString) {
         switch (eventString) {
-            // Young/Minor phases
+            // Young/Minor phases - old format
             case "Young Pause Mark Start":
                 return GENZ_YOUNG_PAUSE_MARK_START;
             case "Young Concurrent Mark":
@@ -293,7 +324,31 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
             case "Young Concurrent Relocate":
                 return GENZ_YOUNG_CONCURRENT_RELOCATE;
             
-            // Major/Old phases
+            // Young/Minor phases - new format (Y: prefix)
+            case "Y: Pause Mark Start":
+            case "Y: Pause Mark Start (Major)":
+                return GENZ_YOUNG_PAUSE_MARK_START;
+            case "Y: Concurrent Mark":
+                return GENZ_YOUNG_CONCURRENT_MARK;
+            case "Y: Pause Mark End":
+                return GENZ_YOUNG_PAUSE_MARK_END;
+            case "Y: Concurrent Mark Free":
+                return GENZ_YOUNG_CONCURRENT_MARK_FREE;
+            case "Y: Concurrent Process Non-Strong":
+                return GENZ_YOUNG_CONCURRENT_NONREF;
+            case "Y: Concurrent Reset Relocation Set":
+                return GENZ_YOUNG_CONCURRENT_RESET_RELOC_SET;
+            case "Y: Concurrent Select Relocation Set":
+                return GENZ_YOUNG_CONCURRENT_SELECT_RELOC_SET;
+            case "Y: Pause Relocate Start":
+                return GENZ_YOUNG_PAUSE_RELOCATE_START;
+            case "Y: Concurrent Relocate":
+                return GENZ_YOUNG_CONCURRENT_RELOCATE;
+            case "Y: Young Generation":
+                // This is just a marker, not a phase event, skip it
+                return null;
+            
+            // Major/Old phases - old format
             case "Major Pause Mark Start":
                 return GENZ_MAJOR_PAUSE_MARK_START;
             case "Major Concurrent Mark":
@@ -312,6 +367,32 @@ public class UnifiedGenZGCLogParser extends AbstractUnifiedGCLogParser {
                 return GENZ_MAJOR_PAUSE_RELOCATE_START;
             case "Major Concurrent Relocate":
                 return GENZ_MAJOR_CONCURRENT_RELOCATE;
+            
+            // Old phases - new format (O: prefix)
+            case "O: Pause Mark Start":
+                return GENZ_MAJOR_PAUSE_MARK_START;
+            case "O: Concurrent Mark":
+                return GENZ_MAJOR_CONCURRENT_MARK;
+            case "O: Pause Mark End":
+                return GENZ_MAJOR_PAUSE_MARK_END;
+            case "O: Concurrent Mark Free":
+                return GENZ_MAJOR_CONCURRENT_MARK_FREE;
+            case "O: Concurrent Process Non-Strong":
+                return GENZ_MAJOR_CONCURRENT_NONREF;
+            case "O: Concurrent Reset Relocation Set":
+                return GENZ_MAJOR_CONCURRENT_RESET_RELOC_SET;
+            case "O: Concurrent Select Relocation Set":
+                return GENZ_MAJOR_CONCURRENT_SELECT_RELOC_SET;
+            case "O: Pause Relocate Start":
+                return GENZ_MAJOR_PAUSE_RELOCATE_START;
+            case "O: Concurrent Relocate":
+                return GENZ_MAJOR_CONCURRENT_RELOCATE;
+            case "O: Concurrent Remap Roots":
+                // New phase in newer GenZGC versions
+                return GENZ_MAJOR_CONCURRENT_MARK; // Map to an existing phase for now
+            case "O: Old Generation":
+                // This is just a marker, not a phase event, skip it
+                return null;
             
             default:
                 throw new ShouldNotReachHereException();
