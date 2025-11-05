@@ -42,7 +42,7 @@ function hasOtherOptions() {
 }
 
 function hasOptions() {
-  return hasGCRelatedOptions() && hasOtherOptions();
+  return hasGCRelatedOptions() || hasOtherOptions();
 }
 
 onMounted(() => {
@@ -79,7 +79,7 @@ onMounted(() => {
         </el-space>
       </template>
 
-      <el-divider style="margin: 20px 0" v-if="hasGCRelatedOptions() && hasOptions()" />
+      <el-divider style="margin: 20px 0" v-if="hasGCRelatedOptions() && hasOtherOptions()" />
 
       <template v-if="hasOtherOptions">
         <el-text size="large">{{ gct('vmOptions.otherOptions') }}</el-text>
