@@ -190,7 +190,7 @@ export function isPause(phase: string, metadata: any) {
 }
 
 export function hasOldGC(metadata: any) {
-  return metadata.collector === 'CMS GC' || metadata.collector === 'G1 GC';
+  return metadata.collector === 'CMS GC' || metadata.collector === 'G1 GC' || metadata.collector === 'Generational ZGC';
 }
 
 export function badIntervalThreshold(phase: string, config: any) {
@@ -214,11 +214,19 @@ export function badDurationThreshold(phase: string, config: any, metadata: any) 
 }
 
 export function hasConcurrentGCThreads(metadata: any) {
-  return ['CMS GC', 'G1 GC', 'ZGC'].indexOf(metadata.collector) >= 0;
+  return ['CMS GC', 'G1 GC', 'ZGC', 'Generational ZGC'].indexOf(metadata.collector) >= 0;
 }
 
 export function hasParallelGCThreads(metadata: any) {
   return metadata.collector !== 'Serial GC';
+}
+
+export function isZGCCollector(metadata: any) {
+  return metadata.collector === 'ZGC' || metadata.collector === 'Generational ZGC';
+}
+
+export function isGenerationalZGC(metadata: any) {
+  return metadata.collector === 'Generational ZGC';
 }
 
 export function formatSize(bytes: number) {

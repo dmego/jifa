@@ -15,7 +15,7 @@ import { useAnalysisApiRequester } from '@/composables/analysis-api-requester';
 import { gct } from '@/i18n/i18n';
 import { TABLE_HEADER_CELL_STYLE } from '@/components/styles';
 import { useGCLogData } from '@/stores/gc-log-data';
-import { formatSize, hasOldGC } from '@/components/gclog/utils';
+import { formatSize, hasOldGC, isZGCCollector } from '@/components/gclog/utils';
 import ValueWithHint from '@/components/gclog/ValueWithHint.vue';
 
 const { request } = useAnalysisApiRequester();
@@ -78,7 +78,9 @@ function loadData() {
   loading.value = true;
   request('memoryStatistics', { ...GCLogData.analysisConfig.timeRange }).then((data) => {
     let generations = [];
-    if (metadata.generational) {
+    // ZGC collectors don't have traditional young/old generations
+    // They only report heap-level statistics
+    if (metadata.generational && !isZGCCollector(metadata)) {
       generations.push('young');
       generations.push('old');
     }

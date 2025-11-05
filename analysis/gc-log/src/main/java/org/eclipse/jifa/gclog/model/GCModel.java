@@ -96,6 +96,7 @@ import static org.eclipse.jifa.gclog.model.GCEventType.ZGC_CONCURRENT_DETATCHED_
 import static org.eclipse.jifa.gclog.model.GCEventType.ZGC_GARBAGE_COLLECTION;
 import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.CMS;
 import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.G1;
+import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.GENZ;
 import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.PARALLEL;
 import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.SERIAL;
 import static org.eclipse.jifa.gclog.model.modeInfo.GCCollectorType.UNKNOWN;
@@ -181,10 +182,14 @@ public abstract class GCModel {
     }
 
     public boolean isGenerational() {
+        // ZGC (non-generational) is not generational
+        // GENZ (Generational ZGC) is generational
         return collectorType != ZGC;
     }
 
     public boolean isPauseless() {
+        // Only non-generational ZGC is pauseless
+        // Generational ZGC (GENZ) has pause phases
         return collectorType == ZGC;
     }
 
